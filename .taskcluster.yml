@@ -1,0 +1,30 @@
+version: 1
+policy:
+  pullRequests: public
+tasks:
+  $let:
+    head_rev:
+      $if: 'tasks_for == "github-pull-request"'
+      then: ${event.pull_request.head.sha}
+      else: ${event.after}
+    repository:
+      $if: 'tasks_for == "github-pull-request"'
+      then: ${event.pull_request.head.repo.html_url}
+      else: ${event.repository.html_url}
+  in:
+  - provisionerId: 'testing'
+    workerType: 'bstack-pool'
+    created: {$fromNow: ''}
+    deadline: {$fromNow: '1 hour'}
+    payload:
+      maxRunTime: 120
+      image: node:10
+      command:
+        - /bin/bash
+        - '-c'
+        - for ((i=1;i<=90;i++)); do echo $i; sleep 1; done
+    metadata:
+      name: test
+      description: Testing tc-gh
+      owner: nobody@mozilla.com
+      source: https://github.com/imbstack/tc-gh-test
